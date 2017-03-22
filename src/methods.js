@@ -260,6 +260,9 @@ export default {
         if (row[sort.id] === null || row[sort.id] === undefined) {
           return -Infinity
         }
+        if (sort.accessor) {
+          return sort.accessor(row.__original)
+        }
         return typeof row[sort.id] === 'string' ? row[sort.id].toLowerCase() : row[sort.id]
       }
     }), sorting.map(d => !d.desc))
@@ -320,7 +323,7 @@ export default {
     if (onSortingChange) {
       return onSortingChange(column, additive)
     }
-    let newSorting = _.clone(sorting || []).map(d => {
+    let newSorting = (sorting || []).map(d => Object.assign({}, d)).map(d => {
       d.desc = _.isSortingDesc(d)
       return d
     })
@@ -346,12 +349,14 @@ export default {
         if (additive) {
           newSorting.push({
             id: column.id,
-            desc: false
+            desc: false,
+            accessor: column.sortAccessor
           })
         } else {
           newSorting = [{
             id: column.id,
-            desc: false
+            desc: false,
+            accessor: column.sortAccessor
           }]
         }
       }
@@ -382,12 +387,14 @@ export default {
         if (additive) {
           newSorting = newSorting.concat(column.map(d => ({
             id: d.id,
-            desc: false
+            desc: false,
+            accessor: d.sortAccessor
           })))
         } else {
           newSorting = column.map(d => ({
             id: d.id,
-            desc: false
+            desc: false,
+            accessor: d.sortAccessor
           }))
         }
       }
